@@ -1,0 +1,9 @@
+datasets==2.16.1
+numpy==1.26.3
+torch>=2.0.1
+tqdm==4.65.0
+transformers==4.35.2
+sentencepiece==0.1.99
+matplotlib==3.4.3
+evaluate
+accelerate
