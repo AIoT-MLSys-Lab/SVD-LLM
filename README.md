@@ -44,6 +44,7 @@ The advancements in Large Language Models (LLMs) have been hindered by their sub
 ## Quick Start
 
 ### Installation
+Please keep the version of the transformers package exactly equal to 4.35.2 since the svd-compressed version of LLM has a slight change of model structure (see component/)
 ```
 pip install -r requirement.txt
 ```
@@ -57,14 +58,13 @@ This script would compress the LLaMA-7B model with ～20\% parameters pruned. Al
     
 ## Step-by-step Instructions  
     
-It takes three steps to prune an LLM:
-* <u>Data Whitening</u>: Discover the complicated inter-dependency in LLMs and find the minimally-removable unit, **group**.
-* <u>SVD Compression</u>: Estimate the contribution of each group to the overall performance of the model and decide which group to prune. 
-* <u>Closed-Form Update</u>: Fast post-training to recover model performance.
+We implement SVDLLM with two different pipelines:
+* Truncation-Aware Data Whitening + SVD Compression (used under **low** compression ratio)
+* Truncation-Aware Data Whitening + SVD Compression + <u>Layer-Wise Closed-Form Update</u> (used under **high** compression ratio)
   
     
-### 1. Data Whitening
-    
+### 1. Truncation-Aware Data Whitening + SVD Compression
+Under the low compression ratio (recommended ratio <= 0.3), we first run the data whitening of the LLM and saved the weight along with the whitening information.
 ```
 python SVDLLM.py \
 --step 1  \
@@ -75,6 +75,7 @@ python SVDLLM.py \
 --save_path WHITENING_INFO_SAVING_PATH
 ```
 
+We next load the whitening information and the weights to run SVD compression
 ```
 python SVDLLM.py \
 --step 2 \
@@ -85,7 +86,9 @@ python SVDLLM.py \
 
 
 
-### 2. SVD Compression
+### 2. Truncation-Aware Data Whitening + SVD Compression + Layer-Wise Closed-Form Update
+Under the high compression ratio (recommended ratio > 0.3), we can further apply layer-wise closed-form update to update the weight matrix after the first pipeline to improve accuracy.
+
 ```
 python SVDLLM.py \
 --step 3 \
@@ -95,8 +98,8 @@ python SVDLLM.py \
 ```
 
 
-### 3. LORA Fine-tuning
-
+### 3. LoRA Fine-tuning
+The compressed model from either of the two pipelines above can also be combined with LoRA fine-tuning to get a better accuracy. We borrowed the LoRA fine-tuning code from [LLM-Pruner](https://github.com/horseee/LLM-Pruner) with the same configuration.
 ```
 python LoRA.py \
 --prune_model COMPRESSED_MODEL_PATH \
