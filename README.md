@@ -31,7 +31,7 @@
 </p>
 
 
-## Brief Introduction
+## Introduction
   
 > **[SVD-LLM: Singular Value Decomposition for Large Language Model Compression](https://arxiv.org/abs/2403.07378)** [[arXiv]](https://arxiv.org/abs/2403.07378)   
 > *Xin Wang<sup>1</sup>, Yu Zheng<sup>2</sup>, Zhongwei Wan<sup>1</sup>, Mi Zhang<sup>1</sup>*   
@@ -59,7 +59,7 @@ bash compress_llama.sh
 This script would compress the LLaMA-7B model under 20\% and 50% compression ratio and automatically run the evaluation code, including both perplexity and efficiency of the compressed model.
 
     
-## Step-by-step Instructions  
+## Step-by-Step Instructions  
     
 We implement SVD-LLM with two different pipelines:
 * Truncation-Aware Data Whitening + SVD Compression (used under **low** compression ratio)
