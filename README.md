@@ -11,6 +11,9 @@
   <a href="https://pytorch.org/">
     <img src="https://img.shields.io/badge/PyTorch-%3E=v2.0.1-EE4C2C.svg?style=flat-square" alt="PyTorch>=v1.7.1">
   </a>
+    <a href="https://huggingface.co/docs/transformers/v4.35.2/en/index">
+    <img src="https://img.shields.io/badge/transformers-v4.35.2-0B952C.svg?style=flat-square" alt="transformers==v4.35.2">
+  </a>
   <a href="https://github.com/facebookresearch/llama">
     <img src="https://img.shields.io/badge/LLMs-LLaMA-FFB000.svg?style=flat-square" alt="LLaMA">
   </a>
@@ -58,7 +61,7 @@ This script would compress the LLaMA-7B model with ～20\% parameters pruned. Al
     
 ## Step-by-step Instructions  
     
-We implement SVDLLM with two different pipelines:
+We implement SVD-LLM with two different pipelines:
 * Truncation-Aware Data Whitening + SVD Compression (used under **low** compression ratio)
 * Truncation-Aware Data Whitening + SVD Compression + <u>Layer-Wise Closed-Form Update</u> (used under **high** compression ratio)
   
