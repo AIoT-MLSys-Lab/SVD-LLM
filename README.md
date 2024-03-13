@@ -47,7 +47,7 @@ The advancements in Large Language Models (LLMs) have been hindered by their sub
 ## Quick Start
 
 ### Installation
-Please keep the version of the transformers package exactly equal to 4.35.2 since the svd-compressed version of LLM has a slight change of model structure (in folder component/.)
+Please keep the version of the transformers package exactly equal to 4.35.2 since the svd-compressed version of LLM has a slight change of model structure (in the `component/.` folder).
 ```
 pip install -r requirement.txt
 ```
@@ -121,6 +121,7 @@ python SVDLLM.py \
 --step 4 \
 --model_path COMPRESSD_MODEL_SAVING_PATH  \
 ```
+We use the same c4 dataset as in [SparseGPT](https://github.com/IST-DASLab/sparsegpt). Since the original dowload link is invalid, please directly download it from this [link](https://drive.google.com/drive/folders/123Id1MkZVsKySGy_sMO4RgiJKrtPcvUp?usp=sharing) and add the two json files under the `utils/.` folder.
 - Efficiency Evaluation:
 ```
 python SVDLLM.py \

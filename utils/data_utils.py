@@ -92,8 +92,8 @@ def get_ptb(nsamples, seed, seqlen, model):
     return trainloader, testenc
 
 def get_c4(nsamples, seed, seqlen, model):
-    traindata = load_dataset("json", data_files="cache/c4-train.json")['train']
-    valdata = load_dataset("json", data_files="cache/c4-validation.json")['train']
+    traindata = load_dataset("json", data_files="c4-train.json")['train']
+    valdata = load_dataset("json", data_files="c4-validation.json")['train']
 
     from transformers import AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained(model, use_fast=False)
