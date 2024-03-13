@@ -56,7 +56,7 @@ pip install -r requirement.txt
 ```
 bash compress_llama.sh
 ```
-This script would compress the LLaMA-7B model with ～20\% parameters pruned. All the pre-trained models and the dataset would be automatically downloaded, so you do not need to manually download the resource. When running this script for the first time, it will require some time to download the model and the dataset.
+This script would compress the LLaMA-7B model under 20\% and 50% compression ratio and automatically run the evaluation code, including both perplexity and efficiency of the compressed model.
 
     
 ## Step-by-step Instructions  
