@@ -101,7 +101,7 @@ python SVDLLM.py \
 ```
 
 
-### 3. LoRA Fine-tuning
+### 3. LoRA Fine-Tuning
 The compressed model from either of the two pipelines above can also be combined with LoRA fine-tuning to get a better accuracy. We borrowed the LoRA fine-tuning code from [LLM-Pruner](https://github.com/horseee/LLM-Pruner) with the same configuration.
 ```
 python LoRA.py \
