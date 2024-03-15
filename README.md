@@ -131,12 +131,10 @@ python SVDLLM.py \
 ## Citation
 If you find this work useful, please cite
 ```
-@misc{wang2024svdllm,
-      title={SVD-LLM: Truncation-aware Singular Value Decomposition for Large Language Model Compression}, 
-      author={Xin Wang and Yu Zheng and Zhongwei Wan and Mi Zhang},
-      year={2024},
-      eprint={2403.07378},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
+@article{wang2024svd,
+  title={SVD-LLM: Truncation-aware Singular Value Decomposition for Large Language Model Compression},
+  author={Wang, Xin and Zheng, Yu and Wan, Zhongwei and Zhang, Mi},
+  journal={arXiv preprint arXiv:2403.07378},
+  year={2024}
 }
 ```
