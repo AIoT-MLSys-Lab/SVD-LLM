@@ -4,26 +4,6 @@
 
 <div align="center">
 <h1>SVD-LLM: Singular Value Decomposition for Large Language Model Compression</h1>
-  <div align="center">
-  <a href="https://opensource.org/licenses/Apache-2.0">
-    <img alt="License: Apache 2.0" src="https://img.shields.io/badge/License-Apache%202.0-4E94CE.svg">
-  </a>
-  <a href="https://pytorch.org/">
-    <img src="https://img.shields.io/badge/PyTorch-%3E=v2.0.1-EE4C2C.svg?style=flat-square" alt="PyTorch>=v1.7.1">
-  </a>
-    <a href="https://huggingface.co/docs/transformers/v4.35.2/en/index">
-    <img src="https://img.shields.io/badge/transformers-v4.35.2-0B952C.svg?style=flat-square" alt="transformers==v4.35.2">
-  </a>
-  <a href="https://github.com/facebookresearch/llama">
-    <img src="https://img.shields.io/badge/LLMs-LLaMA-FFB000.svg?style=flat-square" alt="LLaMA">
-  </a>
-  <a href="https://github.com/facebookresearch/llama">
-    <img src="https://img.shields.io/badge/LLMs-Llama2-FAB093.svg?style=flat-square" alt="Llama-2">
-  </a>
-  <a href="https://huggingface.co/mistralai/Mistral-7B-v0.1">
-    <img src="https://img.shields.io/badge/LLMs-Mistral-8A2BE2.svg?style=flat-square" alt="Llama-2">
-  </a>
-</div>
 </div>
 
 <p align="center">
@@ -32,11 +12,6 @@
 
 
 ## Introduction
-  
-> **[SVD-LLM: Singular Value Decomposition for Large Language Model Compression](https://arxiv.org/abs/2403.07378)** [[arXiv]](https://arxiv.org/abs/2403.07378)   
-> *Xin Wang<sup>1</sup>, Yu Zheng<sup>2</sup>, Zhongwei Wan<sup>1</sup>, Mi Zhang<sup>1</sup>*   
-> *<sup>1</sup>The Ohio State University, <sup>2</sup>Michigan State University*  
-
 ### Key Designs
 -  **Truncation-Aware Data Whitening**: Ensure truncating smaller singular values has lower compression loss. 
 -  **Layer-Wise Closed-Form Update**: Compensate for accuracy degradation under high compression ratio.  
@@ -127,14 +102,4 @@ We use the same c4 dataset as in [SparseGPT](https://github.com/IST-DASLab/spars
 python SVDLLM.py \
 --step 5 \
 --model_path COMPRESSD_MODEL_SAVING_PATH  \
-```
-## Citation
-If you find this work useful, please cite
-```
-@article{wang2024svd,
-  title={SVD-LLM: Truncation-aware Singular Value Decomposition for Large Language Model Compression},
-  author={Wang, Xin and Zheng, Yu and Wan, Zhongwei and Zhang, Mi},
-  journal={arXiv preprint arXiv:2403.07378},
-  year={2024}
-}
 ```

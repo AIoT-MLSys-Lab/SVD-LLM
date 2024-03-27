@@ -136,6 +136,7 @@ def eff_eval(model, tokenizer, dataset='wikitext2', original_len=4, generated_le
         torch.cuda.empty_cache()
         start_memory = torch.cuda.memory_allocated()  # for cpu use resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         torch.cuda.reset_peak_memory_stats(0)
+        torch.cuda.synchronize()
         start_time = time.time()
         generation_output = model.generate(
                 input_ids=batch,
@@ -147,6 +148,7 @@ def eff_eval(model, tokenizer, dataset='wikitext2', original_len=4, generated_le
                 top_p=0.95,
                 temperature=1,
         )
+        torch.cuda.synchronize()
         end_time = time.time()
         end_memory = max(torch.cuda.max_memory_allocated(0), end_memory)
         if torch.isfinite(generation_output[0]).all():  # check if the generation is successful since fp16 may cause nan
