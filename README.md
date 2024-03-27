@@ -1,14 +1,6 @@
-<p align="center">
-<img src="figures/logo.png" width="30%"> <br>
-</p>
-
 <div align="center">
 <h1>SVD-LLM: Singular Value Decomposition for Large Language Model Compression</h1>
 </div>
-
-<p align="center">
-<img width="100%" alt="image" src="figures/framework.png">    
-</p>
 
 
 ## Introduction
