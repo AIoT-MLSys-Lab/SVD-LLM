@@ -1,3 +1,8 @@
+'''
+Refer to
+https://github.com/tloen/alpaca-lora/blob/main/finetune.py
+'''
+
 import os
 import sys
 import argparse

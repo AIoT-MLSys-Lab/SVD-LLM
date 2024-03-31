@@ -66,6 +66,30 @@ class AdaLoraConfig(LoraConfig):
 
 
 class AdaLoraModel(LoraModel):
+    """
+    Creates AdaLoRA (Adaptive LoRA) model from a pretrained transformers model. Paper:
+    https://openreview.net/pdf?id=lq62uWRJjiY
+
+    Args:
+        model ([`transformers.PreTrainedModel`]): The model to be adapted.
+        config ([`AdaLoraConfig`]): The configuration of the AdaLora model.
+
+    Returns:
+        `torch.nn.Module`: The AdaLora model.
+
+    Example::
+
+        >>> from transformers import AutoModelForSeq2SeqLM, LoraConfig >>> from peft import AdaLoraModel, AdaLoraConfig
+        >>> config = AdaLoraConfig(
+                peft_type="ADALORA", task_type="SEQ_2_SEQ_LM", r=8, lora_alpha=32, target_modules=["q", "v"],
+                lora_dropout=0.01,
+            )
+        >>> model = AutoModelForSeq2SeqLM.from_pretrained("t5-base") >>> model = AdaLoraModel(config, model)
+
+    **Attributes**:
+        - **model** ([`transformers.PreTrainedModel`]) -- The model to be adapted.
+        - **peft_config** ([`AdaLoraConfig`]): The configuration of the AdaLora model.
+    """
 
     def __init__(self, model, config, adapter_name):
         nn.Module.__init__(self)
@@ -489,6 +513,14 @@ if is_bnb_available():
 
 
 class RankAllocator(object):
+    """
+    The RankAllocator for AdaLoraModel. Paper: https://openreview.net/pdf?id=lq62uWRJjiY
+
+    Args:
+        config ([`AdaLoraConfig`]): The configuration of the AdaLora model.
+        model: the model that we apply AdaLoRA to.
+
+    """
 
     def __init__(self, model, peft_config, adapter_name):
         self.peft_config = peft_config
