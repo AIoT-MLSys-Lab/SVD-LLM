@@ -1,7 +1,3 @@
-"""
-A dedicated helper to manage templates and prompt building.
-"""
-
 import json
 import os.path as osp
 from typing import Union
