@@ -21,7 +21,10 @@
     <img src="https://img.shields.io/badge/LLMs-Llama2-FAB093.svg?style=flat-square" alt="Llama-2">
   </a>
   <a href="https://huggingface.co/mistralai/Mistral-7B-v0.1">
-    <img src="https://img.shields.io/badge/LLMs-Mistral-8A2BE2.svg?style=flat-square" alt="Llama-2">
+    <img src="https://img.shields.io/badge/LLMs-Mistral-8A2BE2.svg?style=flat-square" alt="mistral">
+  </a>
+  <a href="https://huggingface.co/facebook/opt-6.7b">
+    <img src="https://img.shields.io/badge/LLMs-OPT-ADD8E6.svg?style=flat-square" alt="opt">
   </a>
 </div>
 </div>
