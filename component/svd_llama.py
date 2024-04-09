@@ -89,49 +89,31 @@ class SVD_LlamaMLP(nn.Module):
         hidden_size: int,
         intermediate_size: int,
         hidden_act: str,
-        ratio=[1,1,1]  # 1 means no truncate, just keep normal MLP
+        ratio=1
     ):
         super().__init__()
         self.ratio = ratio
-        if self.ratio[0] != 1:
-            low_rank = int(intermediate_size * hidden_size * self.ratio[0] / (intermediate_size + hidden_size))
-            self.gate_u_proj = nn.Linear(low_rank, intermediate_size, bias=False)
-            self.gate_v_proj = nn.Linear(hidden_size, low_rank, bias=False)
-        else:
-            self.gate_proj = nn.Linear(hidden_size, intermediate_size, bias=False)
-        if self.ratio[1] != 1:
-            low_rank = int(intermediate_size * hidden_size * self.ratio[1] / (intermediate_size + hidden_size))
-            self.down_u_proj = nn.Linear(low_rank, hidden_size, bias=False)
-            self.down_v_proj = nn.Linear(intermediate_size, low_rank, bias=False)
-        else:
-            self.down_proj = nn.Linear(intermediate_size, hidden_size, bias=False)
-        if self.ratio[2] != 1:
-            low_rank = int(intermediate_size * hidden_size * self.ratio[2] / (intermediate_size + hidden_size))
-            self.up_u_proj = nn.Linear(low_rank, intermediate_size, bias=False)
-            self.up_v_proj = nn.Linear(hidden_size, low_rank, bias=False)
-        else:
-            self.up_proj = nn.Linear(hidden_size, intermediate_size, bias=False)
+        low_rank = int(intermediate_size * hidden_size * self.ratio / (intermediate_size + hidden_size))
+        self.gate_u_proj = nn.Linear(low_rank, intermediate_size, bias=False)
+        self.gate_v_proj = nn.Linear(hidden_size, low_rank, bias=False)
+        
+        self.down_u_proj = nn.Linear(low_rank, hidden_size, bias=False)
+        self.down_v_proj = nn.Linear(intermediate_size, low_rank, bias=False)
+        
+        self.up_u_proj = nn.Linear(low_rank, intermediate_size, bias=False)
+        self.up_v_proj = nn.Linear(hidden_size, low_rank, bias=False)
         self.act_fn = ACT2FN[hidden_act]
 
     def forward(self, x):
-        if self.ratio[0] != 1:
-            up = self.up_u_proj(self.up_v_proj(x))
-        else:
-            up = self.up_proj(x)
-        if self.ratio[1] != 1:
-            gate = self.gate_u_proj(self.gate_v_proj(x))
-        else:
-            gate = self.gate_proj(x)
-        if self.ratio[2] != 1:
-            return self.down_u_proj(self.down_v_proj(self.act_fn(gate) * up))
-        else:
-            return self.down_proj(self.act_fn(gate) * up)
+        up = self.up_u_proj(self.up_v_proj(x))
+        gate = self.gate_u_proj(self.gate_v_proj(x))
+        return self.down_u_proj(self.down_v_proj(self.act_fn(gate) * up))
 
 
 class SVD_LlamaAttention(nn.Module):
     """Multi-headed attention from 'Attention Is All You Need' paper"""
 
-    def __init__(self, config: LlamaConfig, ratio=[1,1,1,1]):
+    def __init__(self, config: LlamaConfig, ratio=1):
         super().__init__()
         self.config = config
         self.hidden_size = config.hidden_size
@@ -145,30 +127,19 @@ class SVD_LlamaAttention(nn.Module):
                 f"hidden_size must be divisible by num_heads (got `hidden_size`: {self.hidden_size}"
                 f" and `num_heads`: {self.num_heads})."
             )
-        if self.ratio[0] != 1:
-            low_rank = int(self.hidden_size * self.ratio[0]/2)
-            self.q_u_proj = nn.Linear(low_rank, self.num_heads * self.head_dim, bias=False)
-            self.q_v_proj = nn.Linear(self.hidden_size, low_rank, bias=False)
-        else:
-            self.q_proj = nn.Linear(self.hidden_size, self.num_heads * self.head_dim, bias=False)
-        if self.ratio[1] != 1:
-            low_rank = int(self.hidden_size * self.ratio[1]/2)
-            self.k_u_proj = nn.Linear(low_rank, self.num_heads * self.head_dim, bias=False)
-            self.k_v_proj = nn.Linear(self.hidden_size, low_rank, bias=False)
-        else:
-            self.k_proj = nn.Linear(self.hidden_size, self.num_heads * self.head_dim, bias=False)
-        if self.ratio[2] != 1:
-            low_rank = int(self.hidden_size * self.ratio[2]/2)
-            self.v_u_proj = nn.Linear(low_rank, self.num_heads * self.head_dim, bias=False)
-            self.v_v_proj = nn.Linear(self.hidden_size, low_rank, bias=False)
-        else:
-            self.v_proj = nn.Linear(self.hidden_size, self.num_heads * self.head_dim, bias=False)
-        if self.ratio[3] != 1:
-            low_rank = int(self.hidden_size * self.ratio[3]/2)
-            self.o_u_proj = nn.Linear(low_rank, self.hidden_size, bias=False)
-            self.o_v_proj = nn.Linear(self.num_heads * self.head_dim, low_rank, bias=False)
-        else:
-            self.o_proj = nn.Linear(self.num_heads * self.head_dim, self.hidden_size, bias=False)
+        low_rank = int(self.hidden_size * self.ratio/2)
+        self.q_u_proj = nn.Linear(low_rank, self.num_heads * self.head_dim, bias=False)
+        self.q_v_proj = nn.Linear(self.hidden_size, low_rank, bias=False)
+
+        self.k_u_proj = nn.Linear(low_rank, self.num_heads * self.head_dim, bias=False)
+        self.k_v_proj = nn.Linear(self.hidden_size, low_rank, bias=False)
+
+        self.v_u_proj = nn.Linear(low_rank, self.num_heads * self.head_dim, bias=False)
+        self.v_v_proj = nn.Linear(self.hidden_size, low_rank, bias=False)
+
+        self.o_u_proj = nn.Linear(low_rank, self.hidden_size, bias=False)
+        self.o_v_proj = nn.Linear(self.num_heads * self.head_dim, low_rank, bias=False)
+
         self.rotary_emb = LlamaRotaryEmbedding(self.head_dim, max_position_embeddings=self.max_position_embeddings)
 
     def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
@@ -185,18 +156,11 @@ class SVD_LlamaAttention(nn.Module):
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
         bsz, q_len, _ = hidden_states.size()
     
-        if self.ratio[0] != 1:
-            query_states = self.q_u_proj(self.q_v_proj(hidden_states)).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        else:
-            query_states = self.q_proj(hidden_states).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        if self.ratio[1] != 1:
-            key_states = self.k_u_proj(self.k_v_proj(hidden_states)).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        else:
-            key_states = self.k_proj(hidden_states).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        if self.ratio[2] != 1:
-            value_states = self.v_u_proj(self.v_v_proj(hidden_states)).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        else:
-            value_states = self.v_proj(hidden_states).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
+        query_states = self.q_u_proj(self.q_v_proj(hidden_states)).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
+
+        key_states = self.k_u_proj(self.k_v_proj(hidden_states)).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
+
+        value_states = self.v_u_proj(self.v_v_proj(hidden_states)).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
 
         kv_seq_len = key_states.shape[-2]
         if past_key_value is not None:
@@ -242,153 +206,10 @@ class SVD_LlamaAttention(nn.Module):
         attn_output = attn_output.transpose(1, 2)
         attn_output = attn_output.reshape(bsz, q_len, -1)
 
-        if self.ratio[3]:
-            attn_output = self.o_u_proj(self.o_v_proj(attn_output))
-        else:
-            attn_output = self.o_proj(attn_output)
+        attn_output = self.o_u_proj(self.o_v_proj(attn_output))
 
         if not output_attentions:
             attn_weights = None
 
         return attn_output, attn_weights, past_key_value
     
-class SVD_LlamaAttention_cache(nn.Module):
-    """Multi-headed attention from 'Attention Is All You Need' paper"""
-
-    def __init__(self, config: LlamaConfig, ratio=[1,1,1,1]):
-        super().__init__()
-        self.config = config
-        self.hidden_size = config.hidden_size
-        self.num_heads = config.num_attention_heads
-        self.head_dim = self.hidden_size // self.num_heads
-        self.max_position_embeddings = config.max_position_embeddings
-        self.ratio = ratio
-        if (self.head_dim * self.num_heads) != self.hidden_size:
-            raise ValueError(
-                f"hidden_size must be divisible by num_heads (got `hidden_size`: {self.hidden_size}"
-                f" and `num_heads`: {self.num_heads})."
-            )
-        if self.ratio[0] != 1:
-            low_rank = int(self.hidden_size * self.ratio[0]/2)
-            self.q_u_proj = nn.Linear(low_rank, self.num_heads * self.head_dim, bias=False)
-            self.q_v_proj = nn.Linear(self.hidden_size, low_rank, bias=False)
-        else:
-            self.q_proj = nn.Linear(self.hidden_size, self.num_heads * self.head_dim, bias=False)
-        if self.ratio[1] != 1:
-            low_rank = int(self.hidden_size * self.ratio[1]/2)
-            self.k_u_proj = nn.Linear(low_rank, self.num_heads * self.head_dim, bias=False)
-            self.k_v_proj = nn.Linear(self.hidden_size, low_rank, bias=False)
-        else:
-            self.k_proj = nn.Linear(self.hidden_size, self.num_heads * self.head_dim, bias=False)
-        if self.ratio[2] != 1:
-            low_rank = int(self.hidden_size * self.ratio[2]/2)
-            self.v_u_proj = nn.Linear(low_rank, self.num_heads * self.head_dim, bias=False)
-            self.v_v_proj = nn.Linear(self.hidden_size, low_rank, bias=False)
-        else:
-            self.v_proj = nn.Linear(self.hidden_size, self.num_heads * self.head_dim, bias=False)
-        if self.ratio[3] != 1:
-            low_rank = int(self.hidden_size * self.ratio[3]/2)
-            self.o_u_proj = nn.Linear(low_rank, self.hidden_size, bias=False)
-            self.o_v_proj = nn.Linear(self.num_heads * self.head_dim, low_rank, bias=False)
-        else:
-            self.o_proj = nn.Linear(self.num_heads * self.head_dim, self.hidden_size, bias=False)
-        self.rotary_emb = LlamaRotaryEmbedding(self.head_dim, max_position_embeddings=self.max_position_embeddings)
-
-    def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
-        return tensor.view(bsz, seq_len, self.num_heads, self.head_dim).transpose(1, 2).contiguous()
-
-    def forward(
-        self,
-        hidden_states: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
-        position_ids: Optional[torch.LongTensor] = None,
-        past_key_value: Optional[Tuple[torch.Tensor]] = None,
-        output_attentions: bool = False,
-        use_cache: bool = False,
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
-        bsz, q_len, _ = hidden_states.size()
-    
-        if self.ratio[0] != 1:
-            query_states = self.q_u_proj(self.q_v_proj(hidden_states)).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        else:
-            query_states = self.q_proj(hidden_states).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        if self.ratio[1] != 1:
-            # TODO
-            if use_cache:
-                key_v_x_states = self.k_v_proj(hidden_states)
-                key_states = self.k_u_proj(key_v_x_states).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-            else:
-                key_states = self.k_u_proj(self.k_v_proj(hidden_states)).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        else:
-            key_states = self.k_proj(hidden_states).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        if self.ratio[2] != 1:
-            # TODO 
-            if use_cache:
-                value_v_x_states = self.v_v_proj(hidden_states)
-                value_states = self.v_u_proj(value_v_x_states).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-            else:
-                value_states = self.v_u_proj(self.v_v_proj(hidden_states)).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        else:
-            value_states = self.v_proj(hidden_states).view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        
-        # key_states.shape = query_states = value_states[8,32,2048,128] 
-        # cos.shape = sin.shape = [1,1,2048,128]
-        kv_seq_len = key_states.shape[-2]
-        if past_key_value is not None:
-            kv_seq_len += past_key_value[0].shape[-2]
-        # TODO： pass the shared cos / sin cache from top module (original code only require dev, increasing kv_seq_len, value datatype)
-        cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)        
-        query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
-        ################################################################################################################################
-        # [bsz, nh, t, hd]
-        # TODO: store the key_v_x_states, value_v_x_states in past_key_value rather than the key,value states
-        if past_key_value is not None:
-            # reuse k, v, self_attention
-            
-            key_v_x_states = torch.cat([past_key_value[0], key_v_x_states], dim=(1 if self.ratio[1] != 0 else 2))
-            value_v_x_states = torch.cat([past_key_value[1], value_v_x_states], dim=(1 if self.ratio[2] != 0 else 2))
-
-        past_key_value = (key_v_x_states, value_v_x_states) if use_cache else None
-        ##################################################################################
-        # TODO: restore the k and v
-        if self.ratio[0] != 1 or self.ratio[1] != 1 or self.ratio[2] != 1 or self.ratio[3] != 1:
-            key_states = self.k_u_proj(key_v_x_states).view(bsz, kv_seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-            value_states = self.v_u_proj(value_v_x_states).view(bsz, kv_seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-        attn_weights = torch.matmul(query_states, key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
-
-        if attn_weights.size() != (bsz, self.num_heads, q_len, kv_seq_len):
-            raise ValueError(
-                f"Attention weights should be of size {(bsz * self.num_heads, q_len, kv_seq_len)}, but is"
-                f" {attn_weights.size()}"
-            )
-
-        if attention_mask is not None:
-            if attention_mask.size() != (bsz, 1, q_len, kv_seq_len):
-                raise ValueError(
-                    f"Attention mask should be of size {(bsz, 1, q_len, kv_seq_len)}, but is {attention_mask.size()}"
-                )
-            attn_weights = attn_weights + attention_mask
-            attn_weights = torch.max(attn_weights, torch.tensor(torch.finfo(attn_weights.dtype).min, device=attn_weights.device))
-
-        # upcast attention to fp32
-        attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
-        attn_output = torch.matmul(attn_weights, value_states)
-
-        if attn_output.size() != (bsz, self.num_heads, q_len, self.head_dim):
-            raise ValueError(
-                f"`attn_output` should be of size {(bsz, self.num_heads, q_len, self.head_dim)}, but is"
-                f" {attn_output.size()}"
-            )
-
-        attn_output = attn_output.transpose(1, 2)
-        attn_output = attn_output.reshape(bsz, q_len, -1)
-
-        if self.ratio[3] != 1:
-            attn_output = self.o_u_proj(self.o_v_proj(attn_output))
-        else:
-            attn_output = self.o_proj(attn_output)
-
-        if not output_attentions:
-            attn_weights = None
-
-        return attn_output, attn_weights, past_key_value

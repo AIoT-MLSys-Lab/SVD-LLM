@@ -134,7 +134,7 @@ def eff_eval(model, tokenizer, dataset='wikitext2', original_len=4, generated_le
         batch = batch_data.to(device)
         token_num += batch.shape[0] * generated_len
         torch.cuda.empty_cache()
-        start_memory = torch.cuda.memory_allocated()  # for cpu use resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        start_memory = torch.cuda.memory_allocated()
         torch.cuda.reset_peak_memory_stats(0)
         torch.cuda.synchronize()
         start_time = time.time()
