@@ -153,7 +153,7 @@ def profle_svdllm_low_resource(name, model, calib_loader, dev):
                 print("Warning: eigen scaling_diag_matrix is not positive!")
                 eigenvalues = torch.linalg.eigvalsh(raw_scaling_diag_matrix)
                 raw_scaling_diag_matrix += (- eigenvalues[0] + 1e-6) * torch.eye(raw_scaling_diag_matrix.shape[0]).to(dev)
-                scaling_diag_matrix = torch.linalg.cholesky(raw_scaling_diag_matrix).float()
+                scaling_diag_matrix = torch.linalg.cholesky(raw_scaling_diag_matrix)
                 eigenvalues = None
                 del eigenvalues
             layer_profile[name] = scaling_diag_matrix.cpu()
@@ -188,7 +188,7 @@ def whitening(model_name, model, profiling_mat, ratio, dev):
         for name in subset:
             W = subset[name].weight.data.float().to(dev)
             dtype = W.dtype
-            scaling_diag_matrix = profiling_mat[i][name].to(dev)
+            scaling_diag_matrix = profiling_mat[i][name].double().to(dev)
             try:
                 scaling_matrix_inv = torch.linalg.inv(scaling_diag_matrix)
             except Exception as e:
