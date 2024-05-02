@@ -30,7 +30,7 @@
 </div>
 
 <p align="center">
-<img width="100%" alt="image" src="figures/framework.png">    
+<img width="100%" alt="image" src="figures/framework.jpg">    
 </p>
 
 

@@ -48,34 +48,29 @@ def profle_svdllm(name, model, calib_loader, dev):
     torch.cuda.empty_cache()
     model = model.cpu()
     for i in range(len(layers)):
-        layer = layers[i].to(dev)
-        subset = find_layers(layer)
+        subset = find_layers(layers[i])
         for name in subset:
             subset[name].raw_scaling_diag_matrix = subset[name].raw_scaling_diag_matrix.cpu()
     profiling_mat = {}
     print("Start Cholesky Decomposition...")
     for i in tqdm(range(len(layers))):
         layer_profile = {}
-        layer = layers[i].to(dev)
-        subset = find_layers(layer)
+        subset = find_layers(layers[i])
         for name in subset:
-            W = subset[name].weight.data.float().to(dev)
-            raw_scaling_diag_matrix = subset[name].raw_scaling_diag_matrix.float().to(dev)
+            raw_scaling_diag_matrix = subset[name].raw_scaling_diag_matrix.double().to(dev)
             try:
                 scaling_diag_matrix = torch.linalg.cholesky(raw_scaling_diag_matrix)
             except Exception as e:
-                if not torch.equal(raw_scaling_diag_matrix, raw_scaling_diag_matrix.T):
-                    print("Warning: scaling_diag_matrix is not a symmetric matrix!")
+                print("Warning: eigen scaling_diag_matrix is not positive!")
                 eigenvalues = torch.linalg.eigvalsh(raw_scaling_diag_matrix)
                 raw_scaling_diag_matrix += (- eigenvalues[0] + 1e-6) * torch.eye(raw_scaling_diag_matrix.shape[0]).to(dev)
-                scaling_diag_matrix = torch.linalg.cholesky(raw_scaling_diag_matrix)
+                scaling_diag_matrix = torch.linalg.cholesky(raw_scaling_diag_matrix).float()
                 eigenvalues = None
                 del eigenvalues
             layer_profile[name] = scaling_diag_matrix.cpu()
             scaling_diag_matrix = raw_scaling_diag_matrix = subset[name].raw_scaling_diag_matrix = None
             del scaling_diag_matrix, raw_scaling_diag_matrix, subset[name].raw_scaling_diag_matrix
             torch.cuda.empty_cache()
-        layers[i] = layer.cpu()
         profiling_mat[i] = layer_profile
     return profiling_mat
         
@@ -151,10 +146,9 @@ def profle_svdllm_low_resource(name, model, calib_loader, dev):
             subset[name].scaling_diag_matrix = subset[name].scaling_diag_matrix.cpu()
         torch.cuda.empty_cache()
         for name in subset:
-            W = subset[name].weight.data.float().to(dev)
             raw_scaling_diag_matrix = subset[name].scaling_diag_matrix.double().to(dev)
             try:
-                scaling_diag_matrix = torch.linalg.cholesky(raw_scaling_diag_matrix).float()
+                scaling_diag_matrix = torch.linalg.cholesky(raw_scaling_diag_matrix)
             except Exception as e:
                 print("Warning: eigen scaling_diag_matrix is not positive!")
                 eigenvalues = torch.linalg.eigvalsh(raw_scaling_diag_matrix)
@@ -475,7 +469,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--model', type=str, default='jeffwan/llama-7b-hf', help='LLaMA model to load, pass `jeffwan/llama-7b-hf`')
     parser.add_argument('--model_path', type=str, default=None, help='local compressed model path or whitening information path')
-    parser.add_argument('--ratio', type=float, default=0.2, help='Target compression ratio,(0,1), default=0.8, means only keeping about 80% of the params.')
+    parser.add_argument('--ratio', type=float, default=0.2, help='Target compression ratio,(0,1), default=0.2, means only keeping about 20% of the params.')
     parser.add_argument('--run_low_resource', action='store_true', help='whether to run whitening in low resource, exp, compress LLaMA-7B below 15G gpu')
     parser.add_argument('--dataset', type=str, default='wikitext2',help='Where to extract calibration data from [wikitext2, ptb, c4]')
     parser.add_argument('--whitening_nsamples', type=int, default=256, help='Number of calibration data samples for whitening.')
