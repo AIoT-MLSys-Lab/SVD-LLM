@@ -18,6 +18,8 @@ current_path = os.path.dirname(os.path.abspath(__file__))
 parent_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(current_path)
 
+
+
 @torch.no_grad()
 def profle_svdllm(name, model, calib_loader, dev):
     if "llama" in name or "mistral" in name or "vicuna" in name:
@@ -64,7 +66,7 @@ def profle_svdllm(name, model, calib_loader, dev):
                 print("Warning: eigen scaling_diag_matrix is not positive!")
                 eigenvalues = torch.linalg.eigvalsh(raw_scaling_diag_matrix)
                 raw_scaling_diag_matrix += (- eigenvalues[0] + 1e-6) * torch.eye(raw_scaling_diag_matrix.shape[0]).to(dev)
-                scaling_diag_matrix = torch.linalg.cholesky(raw_scaling_diag_matrix).float()
+                scaling_diag_matrix = torch.linalg.cholesky(raw_scaling_diag_matrix)
                 eigenvalues = None
                 del eigenvalues
             layer_profile[name] = scaling_diag_matrix.cpu()
@@ -76,13 +78,16 @@ def profle_svdllm(name, model, calib_loader, dev):
         
 
 @torch.no_grad()
-def profle_svdllm_low_resource(name, model, calib_loader, dev):
-    if "llama" in name or "mistral" in name or "vicuna" in name:
-        layers = model.model.layers
-    elif "opt" in name:
+def profle_svdllm_low_resource(model_name, model, calib_loader, dev):
+    if "opt" in model_name:
         layers = model.model.decoder.layers
-    model.model.embed_tokens = model.model.embed_tokens.to(dev)
-    model.model.norm = model.model.norm.to(dev)
+        model.model.decoder.embed_tokens = model.model.decoder.embed_tokens.to(dev)
+        model.model.decoder.final_layer_norm = model.model.decoder.final_layer_norm.to(dev)
+        model.model.decoder.embed_positions = model.model.decoder.embed_positions.to(dev)
+    else:
+        layers = model.model.layers
+        model.model.embed_tokens = model.model.embed_tokens.to(dev)
+        model.model.norm = model.model.norm.to(dev)
     layers[0] = layers[0].to(dev)
 
     dtype = next(iter(model.parameters())).dtype
@@ -99,10 +104,12 @@ def profle_svdllm_low_resource(name, model, calib_loader, dev):
             cache['i'] += 1
             if cache['attention_mask'] is None:
                 cache['attention_mask'] = kwargs['attention_mask'].cpu()
-                cache['position_ids'] = kwargs['position_ids'].cpu()
+                if "opt" not in model_name:
+                    cache['position_ids'] = kwargs['position_ids'].cpu()
             else:
                 cache['attention_mask'] = torch.cat((cache['attention_mask'], kwargs['attention_mask'].cpu()), dim=0)
-                cache['position_ids'] = torch.cat((cache['position_ids'], kwargs['position_ids'].cpu()), dim=0)
+                if "opt" not in model_name:
+                    cache['position_ids'] = torch.cat((cache['position_ids'], kwargs['position_ids'].cpu()), dim=0)
             raise ValueError
     layers[0] = Catcher(layers[0])
     for batch in calib_loader:
@@ -113,12 +120,18 @@ def profle_svdllm_low_resource(name, model, calib_loader, dev):
             pass
     layers[0] = layers[0].module
     layers[0] = layers[0].cpu()
-    model.model.embed_tokens = model.model.embed_tokens.cpu()
-    model.model.norm = model.model.norm.cpu()
+    if "opt" in model_name:
+        model.model.decoder.embed_tokens = model.model.decoder.embed_tokens.cpu()
+        model.model.decoder.final_layer_norm = model.model.decoder.final_layer_norm.cpu()
+        model.model.decoder.embed_positions = model.model.decoder.embed_positions.cpu()
+    else:  
+        model.model.embed_tokens = model.model.embed_tokens.cpu()
+        model.model.norm = model.model.norm.cpu()
     torch.cuda.empty_cache()
     outs = torch.zeros_like(inps)
     attention_masks = cache['attention_mask']
-    position_ids = cache['position_ids']
+    if "opt" not in model_name:
+        position_ids = cache['position_ids']
     profiling_mat = {}
     for i in tqdm(range(len(layers))):
         layer_profile = {}
@@ -138,7 +151,10 @@ def profle_svdllm_low_resource(name, model, calib_loader, dev):
             subset[name].scaling_diag_matrix = 0
             handles.append(subset[name].register_forward_hook(hook))
         for j in range(inps.shape[0]):
-            outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_masks[j].unsqueeze(0).to(dev), position_ids=position_ids[j].unsqueeze(0).to(dev))[0]
+            if "opt" not in model_name:
+                outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_masks[j].unsqueeze(0).to(dev), position_ids=position_ids[j].unsqueeze(0).to(dev))[0]
+            else:
+                outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_masks[j].unsqueeze(0).to(dev))[0]
         for h in handles:
             h.remove()
         layer = layer.cpu()
@@ -188,7 +204,7 @@ def whitening(model_name, model, profiling_mat, ratio, dev):
         for name in subset:
             W = subset[name].weight.data.float().to(dev)
             dtype = W.dtype
-            scaling_diag_matrix = profiling_mat[i][name].double().to(dev)
+            scaling_diag_matrix = profiling_mat[i][name].to(dev)
             try:
                 scaling_matrix_inv = torch.linalg.inv(scaling_diag_matrix)
             except Exception as e:
@@ -271,8 +287,15 @@ def whitening_local_update(model_name, model, dataloader, profiling_mat, ratio, 
     print("Start SVD decomposition then update...")
     use_cache = model.config.use_cache
     model.config.use_cache = False
-    layers = model.model.layers
-    model.model.embed_tokens = model.model.embed_tokens.to(dev)
+    if "opt" in model_name:
+        layers = model.model.decoder.layers
+        model.model.decoder.embed_tokens = model.model.decoder.embed_tokens.to(dev)
+        model.model.decoder.final_layer_norm = model.model.decoder.final_layer_norm.to(dev)
+        model.model.decoder.embed_positions = model.model.decoder.embed_positions.to(dev)
+    else:
+        layers = model.model.layers
+        model.model.embed_tokens = model.model.embed_tokens.to(dev)
+        model.model.norm = model.model.norm.to(dev)
     model.model.norm = model.model.norm.to(dev)
     layers[0] = layers[0].to(dev)
 
@@ -290,10 +313,12 @@ def whitening_local_update(model_name, model, dataloader, profiling_mat, ratio, 
             cache['i'] += 1
             if cache['attention_mask'] is None:
                 cache['attention_mask'] = kwargs['attention_mask']
-                cache['position_ids'] = kwargs['position_ids']
+                if "opt" not in model_name:
+                    cache['position_ids'] = kwargs['position_ids']
             else:
                 cache['attention_mask'] = torch.cat((cache['attention_mask'], kwargs['attention_mask']), dim=0)
-                cache['position_ids'] = torch.cat((cache['position_ids'], kwargs['position_ids']), dim=0)
+                if "opt" not in model_name:
+                    cache['position_ids'] = torch.cat((cache['position_ids'], kwargs['position_ids']), dim=0)
             raise ValueError
     layers[0] = Catcher(layers[0])
     for batch in dataloader:
@@ -308,7 +333,8 @@ def whitening_local_update(model_name, model, dataloader, profiling_mat, ratio, 
     torch.cuda.empty_cache()
     outs = torch.zeros_like(inps)
     attention_masks = cache['attention_mask']
-    position_ids = cache['position_ids']
+    if "opt" not in model_name:
+        position_ids = cache['position_ids']
     for i in tqdm(range(len(layers))):
         layer = layers[i].to(dev)
         subset = find_layers(layer)
@@ -335,7 +361,10 @@ def whitening_local_update(model_name, model, dataloader, profiling_mat, ratio, 
         handles = []
         for name in gpts:
             handles.append(subset[name].register_forward_hook(add_batch(name)))
-        outs = layer(inps, attention_mask=attention_masks, position_ids=position_ids)[0]
+        if "opt" not in model_name:
+            outs = layer(inps, attention_mask=attention_masks, position_ids=position_ids)[0]
+        else:
+            outs = layer(inps, attention_mask=attention_masks)[0]
         for h in handles:
             h.remove()
         for name in gpts:
@@ -394,7 +423,10 @@ def whitening_local_update(model_name, model, dataloader, profiling_mat, ratio, 
                     svd_mlp.up_v_proj.weight.data = svd_v
                     layer.mlp = svd_mlp
         layer = layer.to(dev)
-        outs = layer(inps, attention_mask=attention_masks, position_ids=position_ids)[0]
+        if "opt" not in model_name:
+            outs = layer(inps, attention_mask=attention_masks, position_ids=position_ids)[0]
+        else:
+            outs = layer(inps, attention_mask=attention_masks)[0]
         layers[i] = layer.cpu()
         del gpts
         torch.cuda.empty_cache()

@@ -83,7 +83,7 @@ python SVDLLM.py \
 --save_path WHITENING_INFO_SAVING_PATH
 ```
 
-To compress LLM with larger size, or to run the compression under the resource-constraint platform, we can add `--run_low_resource` to the command.
+<!-- To compress LLM with larger size, or to run the compression under the resource-constraint platform, we can add `--run_low_resource` to the command. -->
 
 
 
