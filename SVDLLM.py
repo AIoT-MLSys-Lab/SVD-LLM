@@ -186,7 +186,10 @@ def profle_svdllm_low_resource(model_name, model, calib_loader, dev):
 @torch.no_grad()
 def whitening(model_name, model, profiling_mat, ratio, dev):
     model.eval()
-    layers = model.model.layers
+    if 'opt' in model_name:
+        layers = model.model.decoder.layers
+    else:
+        layers = model.model.layers
     print("Start SVD decomposition after whitening...")
     for i in tqdm(range(len(layers))):
         layer = layers[i]
