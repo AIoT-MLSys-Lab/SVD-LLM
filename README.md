@@ -156,7 +156,7 @@ python SVDLLM.py \
 If you find this work useful, please cite
 ```
 @article{wang2024svd,
-  title={SVD-LLM: Truncation-aware Singular Value Decomposition for Large Language Model Compression},
+  title={Svd-llm: Truncation-aware singular value decomposition for large language model compression},
   author={Wang, Xin and Zheng, Yu and Wan, Zhongwei and Zhang, Mi},
   journal={arXiv preprint arXiv:2403.07378},
   year={2024}
