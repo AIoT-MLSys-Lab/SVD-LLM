@@ -52,7 +52,7 @@ The advancements in Large Language Models (LLMs) have been hindered by their sub
 ### Installation
 Please keep the version of the transformers package exactly equal to 4.35.2 since the svd-compressed version of LLM has a slight change of model structure (in the `component/.` folder).
 ```
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 ### Quick Example
