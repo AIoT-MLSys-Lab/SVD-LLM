@@ -22,7 +22,7 @@ def get_model_from_huggingface(model_id):
     return model, tokenizer
 
 def get_model_from_local(model_id):
-    pruned_dict = torch.load(model_id, map_location='cpu')
+    pruned_dict = torch.load(model_id, weights_only=False, map_location='cpu')
     tokenizer, model = pruned_dict['tokenizer'], pruned_dict['model']
     return model, tokenizer
 
