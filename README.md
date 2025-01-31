@@ -52,6 +52,16 @@ The advancements in Large Language Models (LLMs) have been hindered by their sub
 
 ### Installation
 Please keep the version of the transformers package exactly equal to 4.35.2 since the svd-compressed version of LLM has a slight change of model structure (in the `component/.` folder).
+Create and set up a conda environment with python version 3.9 (newer versions break some dependencies)
+```
+conda create -n compress python=3.9
+conda activate compress
+```
+Clone and navigate to the repository
+```
+git clone https://github.com/AIoT-MLSys-Lab/SVD-LLM.git
+```
+Install requirements.txt
 ```
 pip install -r requirements.txt
 ```
