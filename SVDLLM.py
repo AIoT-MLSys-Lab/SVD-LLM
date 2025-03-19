@@ -571,6 +571,7 @@ if __name__ == '__main__':
                     torch_dtype=torch.float16,
                 )
                 model = model.merge_and_unload()
+                torch.save({'model': model, 'tokenizer': tokenizer}, args.lora + '/merge.pt')
         model.eval()
         model = model.float()
         model = model.to(args.DEV)

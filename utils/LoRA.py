@@ -320,6 +320,7 @@ def main(args):
             optim="adamw_torch",
             evaluation_strategy="steps",
             save_strategy="steps",
+            save_safetensors=False,
             eval_steps=100,
             save_steps=200,
             output_dir=args.output_dir,
@@ -346,7 +347,7 @@ def main(args):
     trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
 
     model.state_dict = old_state_dict
-    model.save_pretrained(args.output_dir)
+    model.save_pretrained(args.output_dir, safe_serialization=False)
 
 
 if __name__ == "__main__":
