@@ -41,12 +41,12 @@ We plan to work on the following tasks, please stay tuned!
 
 ## Introduction
   
-> **SVD-LLM: Truncation-aware Singular Value Decomposition for Large Language Model Compression** [[ICLR 2025]](https://openreview.net/forum?id=LNYIUouhdt&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DICLR.cc%2F2025%2FConference%2FAuthors%23your-submissions))   
+> **[SVD-LLM: Truncation-aware Singular Value Decomposition for Large Language Model Compression]((https://openreview.net/forum?id=LNYIUouhdt&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DICLR.cc%2F2025%2FConference%2FAuthors%23your-submissions)) )**
 > *Xin Wang<sup>1</sup>, Yu Zheng<sup>2</sup>, Zhongwei Wan<sup>1</sup>, Mi Zhang<sup>1</sup>*   
 > *<sup>1</sup>The Ohio State University, <sup>2</sup>Michigan State University*  
 
 
-> **SVD-LLM V2: Optimizing Singular Value Truncation for Large Language Model Compression** [[NAACL 2025]](https://arxiv.org/abs/2503.12340)   
+> **[SVD-LLM V2: Optimizing Singular Value Truncation for Large Language Model Compression](https://arxiv.org/abs/2503.12340)**
 > *Xin Wang, Samiul Alam, Zhongwei Wan, Hui Shen, Mi Zhang*  
 > *The Ohio State University* 
 
