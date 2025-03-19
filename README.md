@@ -138,11 +138,11 @@ python SVDLLM.py \
 If you find this work useful, please cite
 ```
 @inproceedings{
-wang2025svdllm,
-title={{SVD}-{LLM}: Truncation-aware Singular Value Decomposition for Large Language Model Compression},
-author={Xin Wang and Yu Zheng and Zhongwei Wan and Mi Zhang},
-booktitle={The Thirteenth International Conference on Learning Representations},
-year={2025},
-url={https://openreview.net/forum?id=LNYIUouhdt}
+  wang2025svdllm,
+  title={{SVD}-{LLM}: Truncation-aware Singular Value Decomposition for Large Language Model Compression},
+  author={Xin Wang and Yu Zheng and Zhongwei Wan and Mi Zhang},
+  booktitle={International Conference on Learning Representations (ICLR)},
+  year={2025},
+  url={https://openreview.net/forum?id=LNYIUouhdt}
 }
 ```
