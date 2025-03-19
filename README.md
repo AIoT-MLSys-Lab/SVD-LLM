@@ -30,7 +30,7 @@
 </div>
 
 ## ✨Roadmap
-We plan to work on the following tasks, please stay tuned!
+We are working on the following tasks, please stay tuned!
 
 - [X] Open-source the code for SVD-LLM.
 - [ ] Open-source the code for SVD-LLM V2.
@@ -52,7 +52,9 @@ We plan to work on the following tasks, please stay tuned!
 > **[SVD-LLM V2: Optimizing Singular Value Truncation for Large Language Model Compression](https://arxiv.org/abs/2503.12340)**
 > 
 > *Xin Wang, Samiul Alam, Zhongwei Wan, Hui Shen, Mi Zhang*  
-> *The Ohio State University* 
+> *The Ohio State University*
+> 
+> Annual Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics (NAACL) 2025
 
 
 ## Quick Start
