@@ -35,8 +35,8 @@ We plan to work on the following tasks, please stay tuned!
 - [X] Open-source the code for SVD-LLM.
 - [ ] Open-source the code for SVD-LLM V2.
 - [ ] Upgrade the transformers package to the latest version.
-- [ ] Update the efficiency evalution code.
-- [ ] Add the script to compress mistral llm.
+- [ ] Update the efficiency evaluation code.
+- [ ] Optimize the compression of GQA-based llms.
 
 
 ## Introduction
