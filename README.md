@@ -32,11 +32,11 @@
 ## ✨Roadmap
 We are working on the following tasks, please stay tuned!
 
-- [X] Open-source the code for SVD-LLM.
-- [ ] Open-source the code for SVD-LLM V2.
+- [X] Release the code for SVD-LLM.
+- [ ] Release the code for SVD-LLM V2.
 - [ ] Upgrade the transformers package to the latest version.
 - [ ] Update the efficiency evaluation code.
-- [ ] Optimize the compression of GQA-based llms.
+- [ ] Optimize the compression of GQA-based LLMs.
 
 
 ## Introduction
